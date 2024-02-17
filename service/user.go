@@ -46,7 +46,7 @@ func Login(c *gin.Context) {
 		return
 	}
 	//  过期时间
-	expirationTime := time.Now().Add(60 * time.Second) //12 * time.Hour
+	expirationTime := time.Now().Add(60 * 60 * time.Second) //12 * time.Hour
 	//  创建JWT声明
 	claims := &middleware.Claims{
 		ID: user.ID,
@@ -62,7 +62,6 @@ func Login(c *gin.Context) {
 	//  创建JWT字符串
 	tokenString, err := token.SignedString(jwtKey)
 	if err != nil {
-		fmt.Println(err)
 		response.Failed(c, "内部服务器错误")
 		return
 	}

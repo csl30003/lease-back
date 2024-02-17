@@ -31,6 +31,12 @@ func Start() {
 	{
 		i.POST("/logout", service.Logout)
 		i.GET("/getUserInfo", service.GetUserInfo)
+
+		i.GET("/address", service.GetAddress)
+		i.GET("/address/:id", service.GetAddressByID)
+		i.PUT("/address/:id/default", service.SetDefaultAddress)
+		i.POST("/address", service.AddAddress)
+		i.PUT("/address/:id", service.UpdateAddress)
 	}
 
 	err := e.Run(":8080")
