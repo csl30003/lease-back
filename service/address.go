@@ -69,3 +69,10 @@ func UpdateAddress(c *gin.Context) {
 
 	response.Success(c, "更新成功", nil)
 }
+
+func DeleteAddress(c *gin.Context) {
+	addressId, _ := strconv.Atoi(c.Param("id"))
+	model.DeleteAddress(addressId)
+
+	response.Success(c, "删除成功", nil)
+}

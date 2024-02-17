@@ -11,6 +11,7 @@ type User struct {
 	Country  string `gorm:"column:country;type:varchar(100);default:null;comment:所在国家" json:"country"`
 	Province string `gorm:"column:province;type:varchar(100);default:null;comment:省份" json:"province"`
 	City     string `gorm:"column:city;type:varchar(100);default:null;comment:城市" json:"city"`
+	District string `gorm:"column:district;type:varchar(100);default:null;comment:区县" json:"district"`
 	Phone    string `gorm:"column:phone;type:varchar(255);default:null;comment:电话" json:"phone"`
 }
 
@@ -19,6 +20,11 @@ func GetUserByNameAndPassword(name, password string) (user User, ok bool) {
 		return user, false
 	}
 	return user, true
+}
+
+func GetUserByID(id int) (user User) {
+	database.DB.Where("id = ?", id).First(&user)
+	return
 }
 
 func ExistUserByName(name string) bool {

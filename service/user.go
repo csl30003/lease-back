@@ -10,6 +10,8 @@ import (
 	"lease/model"
 	"lease/response"
 	"net/http"
+	"path/filepath"
+	"reflect"
 	"strconv"
 	"time"
 )
@@ -117,6 +119,37 @@ func Logout(c *gin.Context) {
 
 func GetUserInfo(c *gin.Context) {
 	claims, _ := c.Get("claims")
-	fmt.Println(claims)
-	response.Success(c, "获取用户信息成功", claims)
+	claimsValueElem := reflect.ValueOf(claims).Elem()
+	userId := int(claimsValueElem.FieldByName("ID").Int())
+
+	user := model.GetUserByID(userId)
+
+	response.Success(c, "获取用户信息成功", user)
+}
+
+// 还没写完
+func Upload(c *gin.Context) {
+	fmt.Println("11111")
+	file, err := c.FormFile("avatar")
+
+	if err != nil {
+		response.Failed(c, "上传失败")
+		return
+	}
+	fmt.Println(file.Filename)
+
+	// 构建文件名
+	fileExt := filepath.Ext(file.Filename)
+	fileName := fmt.Sprintf("%d%s", time.Now().UnixNano(), fileExt)
+	// 保存上传的文件
+	fmt.Println(fileName)
+	//err = c.SaveUploadedFile(file, "./uploads/"+fileName)
+	//if err != nil {
+	//	response.Failed(c, "上传失败")
+	//	return
+	//}
+
+	// 构建文件访问路径
+	path := fmt.Sprintf("http://localhost:8080/uploads/%s", fileName)
+	response.Success(c, "上传成功", path)
 }

@@ -31,12 +31,14 @@ func Start() {
 	{
 		i.POST("/logout", service.Logout)
 		i.GET("/getUserInfo", service.GetUserInfo)
+		i.POST("/upload", service.Upload)
 
 		i.GET("/address", service.GetAddress)
 		i.GET("/address/:id", service.GetAddressByID)
 		i.PUT("/address/:id/default", service.SetDefaultAddress)
 		i.POST("/address", service.AddAddress)
 		i.PUT("/address/:id", service.UpdateAddress)
+		i.DELETE("/address/:id", service.DeleteAddress)
 	}
 
 	err := e.Run(":8080")

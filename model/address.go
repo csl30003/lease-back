@@ -14,19 +14,19 @@ type Address struct {
 	UserID    int    `gorm:"column:user_id;type:int;not null;comment:用户ID" json:"user_id"`
 }
 
-func GetAddressListByUserID(userID int) (addressList []Address) {
-	database.DB.Where("user_id = ?", userID).Find(&addressList)
+func GetAddressListByUserID(userId int) (addressList []Address) {
+	database.DB.Where("user_id = ?", userId).Find(&addressList)
 	return
 }
 
-func GetAddressByID(addressID int) (address Address) {
-	database.DB.Where("id = ?", addressID).First(&address)
+func GetAddressByID(addressId int) (address Address) {
+	database.DB.Where("id = ?", addressId).First(&address)
 	return
 }
 
-func SetDefaultAddress(addressID, userID int) {
-	database.DB.Model(&Address{}).Where("user_id = ?", userID).Update("is_default", 0)
-	database.DB.Model(&Address{}).Where("id = ?", addressID).Update("is_default", 1)
+func SetDefaultAddress(addressId, userId int) {
+	database.DB.Model(&Address{}).Where("user_id = ?", userId).Update("is_default", 0)
+	database.DB.Model(&Address{}).Where("id = ?", addressId).Update("is_default", 1)
 }
 
 func AddAddress(address Address) {
@@ -35,4 +35,8 @@ func AddAddress(address Address) {
 
 func UpdateAddress(address Address) {
 	database.DB.Save(&address)
+}
+
+func DeleteAddress(addressId int) {
+	database.DB.Delete(&Address{}, addressId)
 }
