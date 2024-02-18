@@ -39,6 +39,8 @@ func Start() {
 		i.POST("/address", service.AddAddress)
 		i.PUT("/address/:id", service.UpdateAddress)
 		i.DELETE("/address/:id", service.DeleteAddress)
+
+		i.POST("/product/image", service.UploadProductImage)
 	}
 	e.GET("/category/:parentId", service.GetCategory)
 

@@ -2,8 +2,6 @@ package model
 
 import (
 	"gorm.io/gorm"
-	"lease/database"
-	"log"
 	"time"
 )
 
@@ -22,16 +20,16 @@ type Model struct {
 // init
 //  @Description: 初始化MySQL数据库表
 //
-func init() {
-	err := database.DB.AutoMigrate(
-		//&User{},
-		//&Address{},
-		&Product{},
-		//&ProductImage{},
-		//&Category{},
-	)
-	if err != nil {
-		log.Fatal("MySQL表初始化失败", err)
-		return
-	}
-}
+//func init() {
+//	err := database.DB.AutoMigrate(
+//		&User{},
+//		&Address{},
+//		&Product{},
+//		&ProductImage{},
+//		&Category{},
+//	)
+//	if err != nil {
+//		log.Fatal("MySQL表初始化失败", err)
+//		return
+//	}
+//}
