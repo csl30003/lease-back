@@ -24,8 +24,11 @@ type Model struct {
 //
 func init() {
 	err := database.DB.AutoMigrate(
-		&User{},
-		&Address{},
+		//&User{},
+		//&Address{},
+		&Product{},
+		//&ProductImage{},
+		//&Category{},
 	)
 	if err != nil {
 		log.Fatal("MySQL表初始化失败", err)

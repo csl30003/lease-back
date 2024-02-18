@@ -38,3 +38,11 @@ func ExistUserByName(name string) bool {
 func AddUser(user *User) {
 	database.DB.Create(user)
 }
+
+func UpdateUser(user *User) {
+	database.DB.Model(&User{}).Where("id = ?", user.ID).Updates(map[string]interface{}{"name": user.Name, "phone": user.Phone, "country": user.Country, "province": user.Province, "city": user.City, "district": user.District})
+}
+
+func UpdateUserAvatar(id int, avatar string) {
+	database.DB.Model(&User{}).Where("id = ?", id).Update("avatar", avatar)
+}

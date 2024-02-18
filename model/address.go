@@ -34,7 +34,7 @@ func AddAddress(address Address) {
 }
 
 func UpdateAddress(address Address) {
-	database.DB.Save(&address)
+	database.DB.Model(&Address{}).Where("id = ?", address.ID).Updates(map[string]interface{}{"name": address.Name, "phone": address.Phone, "province": address.Province, "city": address.City, "district": address.District, "detail": address.Detail})
 }
 
 func DeleteAddress(addressId int) {

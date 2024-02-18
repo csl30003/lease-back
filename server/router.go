@@ -24,13 +24,13 @@ func Start() {
 	//})
 	//e.Use(mwCORS)
 
-	e.POST("/hello", service.HelloWorld)
 	e.POST("/login", service.Login)
 	e.POST("/register", service.Register)
 	i := e.Group("/index", middleware.JWT())
 	{
 		i.POST("/logout", service.Logout)
 		i.GET("/getUserInfo", service.GetUserInfo)
+		i.PUT("/updateUser", service.UpdateUser)
 		i.POST("/upload", service.Upload)
 
 		i.GET("/address", service.GetAddress)
@@ -40,6 +40,7 @@ func Start() {
 		i.PUT("/address/:id", service.UpdateAddress)
 		i.DELETE("/address/:id", service.DeleteAddress)
 	}
+	e.GET("/category/:parentId", service.GetCategory)
 
 	err := e.Run(":8080")
 	if err != nil {

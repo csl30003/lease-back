@@ -10,28 +10,11 @@ import (
 	"lease/model"
 	"lease/response"
 	"net/http"
+	"os"
 	"path/filepath"
 	"reflect"
-	"strconv"
 	"time"
 )
-
-func HelloWorld(c *gin.Context) {
-	// 获取参数
-	man := struct {
-		Name string `json:"name"`
-		Sex  int    `json:"sex"`
-	}{}
-	if err := c.ShouldBindJSON(&man); err != nil {
-		c.String(400, "请求参数错误")
-		return
-	}
-	fmt.Println(man.Name, man.Sex)
-	// sex转字符串
-	strSex := strconv.Itoa(man.Sex)
-	//	返回一个字符串
-	c.String(200, "Hello %s %s", man.Name, strSex)
-}
 
 func Login(c *gin.Context) {
 	var loginReq dto.LoginReq
@@ -127,29 +110,62 @@ func GetUserInfo(c *gin.Context) {
 	response.Success(c, "获取用户信息成功", user)
 }
 
-// 还没写完
+func UpdateUser(c *gin.Context) {
+	claims, _ := c.Get("claims")
+	claimsValueElem := reflect.ValueOf(claims).Elem()
+	userId := int(claimsValueElem.FieldByName("ID").Int())
+
+	var user model.User
+	if err := c.ShouldBindJSON(&user); err != nil {
+		response.Failed(c, "参数错误")
+		return
+	}
+
+	user.ID = userId
+	model.UpdateUser(&user)
+
+	response.Success(c, "更新用户信息成功", nil)
+}
+
 func Upload(c *gin.Context) {
-	fmt.Println("11111")
+	claims, _ := c.Get("claims")
+	claimsValueElem := reflect.ValueOf(claims).Elem()
+	userId := int(claimsValueElem.FieldByName("ID").Int())
+
 	file, err := c.FormFile("avatar")
 
 	if err != nil {
 		response.Failed(c, "上传失败")
 		return
 	}
-	fmt.Println(file.Filename)
 
 	// 构建文件名
 	fileExt := filepath.Ext(file.Filename)
 	fileName := fmt.Sprintf("%d%s", time.Now().UnixNano(), fileExt)
+
 	// 保存上传的文件
-	fmt.Println(fileName)
-	//err = c.SaveUploadedFile(file, "./uploads/"+fileName)
-	//if err != nil {
-	//	response.Failed(c, "上传失败")
-	//	return
-	//}
+	err = c.SaveUploadedFile(file, "D:\\HBuilderProjects\\lease\\static\\images\\avatar\\"+fileName)
+	if err != nil {
+		response.Failed(c, "上传失败")
+		return
+	}
 
 	// 构建文件访问路径
-	path := fmt.Sprintf("http://localhost:8080/uploads/%s", fileName)
+	path := fmt.Sprintf("/static/images/avatar/%s", fileName)
+
+	// 先删除原来的头像
+	oldPath := model.GetUserByID(userId).Avatar
+	if oldPath != "" {
+		//删除图片
+		err := os.Remove("D:\\HBuilderProjects\\lease" + oldPath)
+		if err != nil {
+			response.Failed(c, "删除原头像失败")
+			return
+		}
+	}
+
+	//保存到数据库
+	model.UpdateUserAvatar(userId, path)
+
 	response.Success(c, "上传成功", path)
 }
