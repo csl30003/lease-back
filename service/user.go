@@ -31,7 +31,7 @@ func Login(c *gin.Context) {
 		return
 	}
 	//  过期时间
-	expirationTime := time.Now().Add(60 * 60 * time.Second) //12 * time.Hour
+	expirationTime := time.Now().Add(12 * time.Hour)
 	//  创建JWT声明
 	claims := &middleware.Claims{
 		ID: user.ID,
