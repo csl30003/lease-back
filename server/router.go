@@ -41,8 +41,9 @@ func Start() {
 		i.DELETE("/address/:id", service.DeleteAddress)
 
 		i.POST("/product", service.AddProduct)
-		i.PUT("/product/status", service.UpdateProduct)
+		i.PUT("/product/status", service.UpdateProductStatus)
 		i.GET("/product/my/:status", service.GetMyProduct)
+		i.GET("/product/list", service.GetProductList)
 		i.POST("/product/mainImage/:id", service.UploadProductMainImage)
 		i.POST("/product/image/:id", service.UploadProductImage)
 	}

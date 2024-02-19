@@ -11,7 +11,7 @@ type Product struct {
 	Stock      int     `gorm:"column:stock;type:int;not null;comment:商品库存" json:"stock"`
 	Delivery   int     `gorm:"column:delivery;type:int;default:0;comment:配送方式，0邮寄、1自提" json:"delivery"`
 	Freight    float64 `gorm:"column:freight;type:decimal(10,2);default:0;comment:运费" json:"freight"`
-	Condition  int     `gorm:"column:condition;type:int;default:0;comment:成色，0全新、1几乎全新、2轻微使用痕迹、3明显使用痕迹" json:"condition"`
+	Fineness   int     `gorm:"column:fineness;type:int;default:0;comment:成色，0全新、1几乎全新、2轻微使用痕迹、3明显使用痕迹" json:"fineness"`
 	UsedYears  int     `gorm:"column:used_years;type:int;default:0;comment:已用年限" json:"used_years"`
 	Status     int     `gorm:"column:status;type:tinyint(1);default:0;comment:状态，0未发布，1已发布，2已下架" json:"status"`
 	CategoryID int     `gorm:"column:category_id;type:int;not null;comment:商品分类ID" json:"category_id"`
@@ -35,5 +35,36 @@ func UpdateProductStatus(product Product) {
 
 func GetMyProduct(userId, status int) (products []Product) {
 	database.DB.Where("user_id = ? and status = ?", userId, status).Find(&products)
+	return
+}
+
+func GetProductList(current, size int, name, categoryID, sort, order string) (products []Product) {
+	db := database.DB
+	if name != "" {
+		db = db.Where("name like ?", "%"+name+"%")
+	}
+	if categoryID != "" {
+		db = db.Where("category_id = ?", categoryID)
+	}
+	if sort != "" {
+		db = db.Order(sort + " " + order)
+	}
+	db.Where("status = ?", 1).Offset((current - 1) * size).Limit(size).Find(&products)
+
+	return
+}
+
+func GetProductListTotal(name, categoryID, sort, order string) (total int64) {
+	db := database.DB
+	if name != "" {
+		db = db.Where("name like ?", "%"+name+"%")
+	}
+	if categoryID != "" {
+		db = db.Where("category_id = ?", categoryID)
+	}
+	if sort != "" {
+		db = db.Order(sort + " " + order)
+	}
+	db.Model(&Product{}).Where("status = ?", 1).Count(&total)
 	return
 }
