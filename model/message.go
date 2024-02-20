@@ -23,7 +23,7 @@ type MessageUser struct {
 }
 
 func GetChatUser(fromID int) (messageUserList []MessageUser) {
-	database.DB.Raw("SELECT uni_table.id, friend_id, uni_table.content, uni_table.created_at, u.name, u.avatar FROM ( SELECT id, to_id as friend_id,content,created_at FROM messages WHERE (from_id = ?) AND (to_id <> ?) UNION SELECT id, from_id as friend_id,content,created_at FROM messages WHERE (from_id <> ?) AND (to_id = ?) ORDER BY created_at desc ) AS uni_table INNER JOIN users u on friend_id = u.id GROUP BY friend_id ORDER BY uni_table.created_at DESC;", fromID, fromID, fromID, fromID).Scan(&messageUserList)
+	database.DB.Raw("SELECT uni_table.id, friend_id, uni_table.content, uni_table.created_at, u.name, u.avatar FROM ( SELECT id, to_id as friend_id,content,created_at FROM messages WHERE (from_id = ?) AND (to_id <> ?) AND deleted_at IS NULL UNION SELECT id, from_id as friend_id,content,created_at FROM messages WHERE (from_id <> ?) AND (to_id = ?) AND deleted_at IS NULL ORDER BY created_at desc ) AS uni_table INNER JOIN users u on friend_id = u.id AND u.deleted_at IS NULL GROUP BY friend_id ORDER BY uni_table.created_at DESC;", fromID, fromID, fromID, fromID).Scan(&messageUserList)
 	return
 }
 
