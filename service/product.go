@@ -3,6 +3,7 @@ package service
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"lease/dto"
 	"lease/model"
 	"lease/response"
 	"reflect"
@@ -108,4 +109,56 @@ func GetProductList(c *gin.Context) {
 		"records": productList,
 		"pages":   pages,
 	})
+}
+
+func GetProduct(c *gin.Context) {
+	id := c.Param("id")
+	productId, err := strconv.Atoi(id)
+	if err != nil {
+		response.Failed(c, "参数错误")
+		return
+	}
+
+	product := model.GetProduct(productId)
+
+	// 通过product.CategoryID获取分类信息
+	category := model.GetCategoryByID(product.CategoryID)
+
+	// 通过product.AddressID获取地址信息
+	address := model.GetAddressByID(product.AddressID)
+
+	// 通过product.UserID获取用户信息
+	user := model.GetUserByID(product.UserID)
+
+	// 通过product.ID获取商品图片列表
+	imageList := model.GetProductImageList(product.ID)
+
+	getProductResp := dto.GetProductResp{
+		ID:              product.ID,
+		CreatedAt:       product.CreatedAt,
+		UpdatedAt:       product.UpdatedAt,
+		DeletedAt:       product.DeletedAt,
+		Name:            product.Name,
+		Price:           product.Price,
+		Detail:          product.Detail,
+		MainImage:       product.MainImage,
+		Stock:           product.Stock,
+		Delivery:        product.Delivery,
+		Freight:         product.Freight,
+		Fineness:        product.Fineness,
+		UsedYears:       product.UsedYears,
+		Status:          product.Status,
+		CategoryID:      category.ID,
+		CategoryName:    category.Name,
+		AddressID:       address.ID,
+		AddressProvince: address.Province,
+		AddressCity:     address.City,
+		AddressDistrict: address.District,
+		UserID:          user.ID,
+		UserName:        user.Name,
+		UserAvatar:      user.Avatar,
+		ImageList:       imageList,
+	}
+
+	response.Success(c, "获取成功", getProductResp)
 }

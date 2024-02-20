@@ -30,6 +30,7 @@ func Start() {
 	{
 		i.POST("/logout", service.Logout)
 		i.GET("/getUserInfo", service.GetUserInfo)
+		i.GET("/getUserInfo/:id", service.GetOtherUserInfo)
 		i.PUT("/updateUser", service.UpdateUser)
 		i.POST("/upload", service.Upload)
 
@@ -41,11 +42,19 @@ func Start() {
 		i.DELETE("/address/:id", service.DeleteAddress)
 
 		i.POST("/product", service.AddProduct)
+		i.GET("/product/:id", service.GetProduct)
 		i.PUT("/product/status", service.UpdateProductStatus)
 		i.GET("/product/my/:status", service.GetMyProduct)
 		i.GET("/product/list", service.GetProductList)
 		i.POST("/product/mainImage/:id", service.UploadProductMainImage)
 		i.POST("/product/image/:id", service.UploadProductImage)
+
+		i.GET("collection/isCollection/:product_id", service.IsCollection)
+		i.POST("collection/addOrCancel", service.Collection)
+
+		i.POST("/message", service.SendMessage)
+		i.GET("/message/user", service.GetChatUser)
+		i.GET("/message/list/:toId", service.GetMessage)
 	}
 	e.GET("/category/:parentId", service.GetCategory)
 

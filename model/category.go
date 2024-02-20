@@ -14,3 +14,8 @@ func GetCategoryByParentID(parentId int) (categoryList []Category) {
 	database.DB.Where("parent_id = ?", parentId).Find(&categoryList)
 	return
 }
+
+func GetCategoryByID(id int) (category Category) {
+	database.DB.Where("id = ?", id).First(&category)
+	return
+}

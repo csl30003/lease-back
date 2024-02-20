@@ -29,6 +29,8 @@ func init() {
 		&Product{},
 		&ProductImage{},
 		&Category{},
+		&Collection{},
+		&Message{},
 	)
 	if err != nil {
 		log.Fatal("MySQL表初始化失败", err)

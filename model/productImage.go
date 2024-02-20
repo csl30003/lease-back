@@ -11,3 +11,8 @@ type ProductImage struct {
 func AddProductImage(productId int, path string) {
 	database.DB.Create(&ProductImage{URL: path, ProductID: productId})
 }
+
+func GetProductImageList(productId int) (images []ProductImage) {
+	database.DB.Where("product_id = ?", productId).Find(&images)
+	return
+}

@@ -68,3 +68,8 @@ func GetProductListTotal(name, categoryID, sort, order string) (total int64) {
 	db.Model(&Product{}).Where("status = ?", 1).Count(&total)
 	return
 }
+
+func GetProduct(id int) (product Product) {
+	database.DB.Where("id = ?", id).First(&product)
+	return
+}

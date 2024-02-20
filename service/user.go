@@ -13,6 +13,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"strconv"
 	"time"
 )
 
@@ -59,6 +60,7 @@ func Login(c *gin.Context) {
 
 	var loginResp dto.LoginResp
 	loginResp.Token = tokenString
+	loginResp.ID = user.ID
 	loginResp.Name = user.Name
 	loginResp.Avatar = user.Avatar
 	loginResp.Gender = user.Gender
@@ -168,4 +170,15 @@ func Upload(c *gin.Context) {
 	model.UpdateUserAvatar(userId, path)
 
 	response.Success(c, "上传成功", path)
+}
+
+func GetOtherUserInfo(c *gin.Context) {
+	id := c.Param("id")
+	idInt, err := strconv.Atoi(id)
+	if err != nil {
+		response.Failed(c, "参数错误")
+		return
+	}
+	user := model.GetUserByID(idInt)
+	response.Success(c, "获取用户信息成功", user)
 }
