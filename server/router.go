@@ -55,6 +55,11 @@ func Start() {
 		i.POST("/message", service.SendMessage)
 		i.GET("/message/user", service.GetChatUser)
 		i.GET("/message/list/:toId", service.GetMessage)
+
+		i.GET("/comment/two/:productId", service.GetTwoComment)
+		i.GET("/comment/root/:productId", service.GetRootComment)
+		i.GET("/comment/list/:commentId", service.GetCommentList)
+		i.POST("/comment", service.AddComment)
 	}
 	e.GET("/category/:parentId", service.GetCategory)
 
