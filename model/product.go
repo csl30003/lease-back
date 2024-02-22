@@ -73,3 +73,7 @@ func GetProduct(id int) (product Product) {
 	database.DB.Where("id = ?", id).First(&product)
 	return
 }
+
+func UpdateProductStock(id, stock int) {
+	database.DB.Model(&Product{}).Where("id = ?", id).Update("stock", stock)
+}

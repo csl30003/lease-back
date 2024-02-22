@@ -32,6 +32,7 @@ func init() {
 		&Collection{},
 		&Message{},
 		&Comment{},
+		&Order{},
 	)
 	if err != nil {
 		log.Fatal("MySQL表初始化失败", err)

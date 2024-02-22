@@ -60,6 +60,10 @@ func Start() {
 		i.GET("/comment/root/:productId", service.GetRootComment)
 		i.GET("/comment/list/:commentId", service.GetCommentList)
 		i.POST("/comment", service.AddComment)
+
+		i.POST("order", service.AddOrder)
+		i.GET("order/:id", service.GetOrder)
+		i.DELETE("order/:id", service.CancelOrder)
 	}
 	e.GET("/category/:parentId", service.GetCategory)
 

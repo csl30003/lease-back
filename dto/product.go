@@ -24,9 +24,12 @@ type GetProductResp struct {
 	CategoryID      int                  `json:"category_id"`
 	CategoryName    string               `json:"category_name"`
 	AddressID       int                  `json:"address_id"`
+	AddressName     string               `json:"address_name"`
+	AddressPhone    string               `json:"address_phone"`
 	AddressProvince string               `json:"address_province"`
 	AddressCity     string               `json:"address_city"`
 	AddressDistrict string               `json:"address_district"`
+	AddressDetail   string               `json:"address_detail"`
 	UserID          int                  `json:"user_id"`
 	UserName        string               `json:"user_name"`
 	UserAvatar      string               `json:"user_avatar"`
