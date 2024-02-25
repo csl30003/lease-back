@@ -89,6 +89,53 @@ func GetOrderByID(orderID int) (order Order) {
 	database.DB.Where("id = ?", orderID).First(&order)
 	return
 }
-func CancelOrder(orderID int) {
-	database.DB.Model(&Order{}).Where("id = ?", orderID).Update("status", 0)
+
+func UpdateOrderStatus(orderID, status int) {
+	database.DB.Model(&Order{}).Where("id = ?", orderID).Update("status", status)
+}
+
+func UpdateOrderPayTime(orderID int) {
+	database.DB.Model(&Order{}).Where("id = ?", orderID).Update("pay_time", time.Now())
+}
+
+func UpdateOrderMyReceiveTime(orderID int) {
+	database.DB.Model(&Order{}).Where("id = ?", orderID).Update("my_receive_time", time.Now())
+}
+
+func UpdateOrderReturnTime(orderID int) {
+	database.DB.Model(&Order{}).Where("id = ?", orderID).Update("return_time", time.Now())
+}
+
+func GetMyAllOrder(userId, currentInt, sizeInt int) (orderDetailList []OrderDetail) {
+	database.DB.Table("orders").
+		Select("orders.id, orders.created_at, orders.updated_at, orders.identifier, orders.status, orders.pay_time, orders.his_delivery_time, orders.my_receive_time, orders.return_time, orders.his_receive_time, orders.inspect_complete_time, orders.all_solve_time, orders.complete_time, orders.product_price, orders.use_days, orders.product_quantity, orders.freight, orders.actual_payment, orders.payment_type, orders.user_id, orders.his_id, orders.my_address_id, my_address.name as my_address_name, my_address.phone as my_address_phone, my_address.province as my_address_province, my_address.city as my_address_city, my_address.district as my_address_district, my_address.detail as my_address_detail, orders.his_address_id, his_address.name as his_address_name, his_address.phone as his_address_phone, his_address.province as his_address_province, his_address.city as his_address_city, his_address.district as his_address_district, his_address.detail as his_address_detail, orders.product_id, products.name as product_name, products.main_image as product_image").
+		Joins("LEFT JOIN addresses as my_address ON orders.my_address_id = my_address.id AND my_address.deleted_at IS NULL").
+		Joins("LEFT JOIN addresses as his_address ON orders.his_address_id = his_address.id AND his_address.deleted_at IS NULL").
+		Joins("LEFT JOIN products ON orders.product_id = products.id AND products.deleted_at IS NULL").
+		Where("orders.user_id = ? AND orders.deleted_at IS NULL", userId).
+		Offset((currentInt - 1) * sizeInt).Limit(sizeInt).
+		Find(&orderDetailList)
+	return
+}
+
+func GetMyAllOrderTotal(userId int) (total int64) {
+	database.DB.Model(&Order{}).Where("user_id = ?", userId).Count(&total)
+	return
+}
+
+func GetMyPartialOrder(userId, currentInt, sizeInt, statusInt int) (orderDetailList []OrderDetail) {
+	database.DB.Table("orders").
+		Select("orders.id, orders.created_at, orders.updated_at, orders.identifier, orders.status, orders.pay_time, orders.his_delivery_time, orders.my_receive_time, orders.return_time, orders.his_receive_time, orders.inspect_complete_time, orders.all_solve_time, orders.complete_time, orders.product_price, orders.use_days, orders.product_quantity, orders.freight, orders.actual_payment, orders.payment_type, orders.user_id, orders.his_id, orders.my_address_id, my_address.name as my_address_name, my_address.phone as my_address_phone, my_address.province as my_address_province, my_address.city as my_address_city, my_address.district as my_address_district, my_address.detail as my_address_detail, orders.his_address_id, his_address.name as his_address_name, his_address.phone as his_address_phone, his_address.province as his_address_province, his_address.city as his_address_city, his_address.district as his_address_district, his_address.detail as his_address_detail, orders.product_id, products.name as product_name, products.main_image as product_image").
+		Joins("LEFT JOIN addresses as my_address ON orders.my_address_id = my_address.id AND my_address.deleted_at IS NULL").
+		Joins("LEFT JOIN addresses as his_address ON orders.his_address_id = his_address.id AND his_address.deleted_at IS NULL").
+		Joins("LEFT JOIN products ON orders.product_id = products.id AND products.deleted_at IS NULL").
+		Where("orders.user_id = ? AND orders.status = ? AND orders.deleted_at IS NULL", userId, statusInt).
+		Offset((currentInt - 1) * sizeInt).Limit(sizeInt).
+		Find(&orderDetailList)
+	return
+}
+
+func GetMyPartialOrderTotal(userId, statusInt int) (total int64) {
+	database.DB.Model(&Order{}).Where("user_id = ? AND status = ?", userId, statusInt).Count(&total)
+	return
 }

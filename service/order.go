@@ -117,7 +117,144 @@ func CancelOrder(c *gin.Context) {
 	product.Stock += order.ProductQuantity
 	model.UpdateProductStock(product.ID, product.Stock)
 
-	model.CancelOrder(idInt)
+	model.UpdateOrderStatus(idInt, 0)
 
 	response.Success(c, "取消成功", nil)
+}
+
+func GetMyOrder(c *gin.Context) {
+	claims, _ := c.Get("claims")
+	claimsValueElem := reflect.ValueOf(claims).Elem()
+	userId := int(claimsValueElem.FieldByName("ID").Int())
+
+	//从get方法获取数据
+	current := c.Query("current")
+	size := c.Query("size")
+	status := c.Query("status")
+
+	// 默认判断
+	if current == "" {
+		current = "1"
+	}
+	if size == "" {
+		size = "10"
+	}
+
+	// 将current和size转换成int类型
+	currentInt, err := strconv.Atoi(current)
+	if err != nil {
+		response.Failed(c, "参数错误")
+		return
+	}
+	sizeInt, err := strconv.Atoi(size)
+	if err != nil {
+		response.Failed(c, "参数错误")
+		return
+	}
+
+	var orderList []model.OrderDetail
+	var total int64
+	// 如果status在0到8之间，查询指定状态订单，否则查询全部订单
+	if status == "0" || status == "1" || status == "2" || status == "3" || status == "4" || status == "5" || status == "6" || status == "7" || status == "8" {
+		statusInt, err := strconv.Atoi(status)
+		if err != nil {
+			response.Failed(c, "参数错误")
+			return
+		}
+		// 查询指定状态订单
+		orderList = model.GetMyPartialOrder(userId, currentInt, sizeInt, statusInt)
+		total = model.GetMyPartialOrderTotal(userId, statusInt)
+	} else {
+		// 查询全部订单
+		orderList = model.GetMyAllOrder(userId, currentInt, sizeInt)
+		total = model.GetMyAllOrderTotal(userId)
+	}
+
+	var pages int64
+	if total%int64(sizeInt) == 0 {
+		pages = total / int64(sizeInt)
+	} else {
+		pages = total/int64(sizeInt) + 1
+	}
+
+	response.Success(c, "获取成功", gin.H{
+		"records": orderList,
+		"pages":   pages,
+	})
+}
+
+// IReceiveOrder 我收货
+func IReceiveOrder(c *gin.Context) {
+	claims, _ := c.Get("claims")
+	claimsValueElem := reflect.ValueOf(claims).Elem()
+	userId := int(claimsValueElem.FieldByName("ID").Int())
+
+	id := c.Param("id")
+	idInt, err := strconv.Atoi(id)
+	if err != nil {
+		response.Failed(c, "参数错误")
+		return
+	}
+
+	order := model.GetOrderByID(idInt)
+	if order.UserID != userId {
+		response.Failed(c, "无权限操作")
+		return
+	}
+
+	model.UpdateOrderStatus(idInt, 4)
+
+	model.UpdateOrderMyReceiveTime(idInt)
+
+	response.Success(c, "操作成功", nil)
+}
+
+// IReturnOrder 我归还
+func IReturnOrder(c *gin.Context) {
+	claims, _ := c.Get("claims")
+	claimsValueElem := reflect.ValueOf(claims).Elem()
+	userId := int(claimsValueElem.FieldByName("ID").Int())
+
+	id := c.Param("id")
+	idInt, err := strconv.Atoi(id)
+	if err != nil {
+		response.Failed(c, "参数错误")
+		return
+	}
+
+	order := model.GetOrderByID(idInt)
+	if order.UserID != userId {
+		response.Failed(c, "无权限操作")
+		return
+	}
+
+	model.UpdateOrderStatus(idInt, 5)
+
+	model.UpdateOrderReturnTime(idInt)
+
+	response.Success(c, "操作成功", nil)
+}
+
+// SolveOrder 双方确认解决 没写完
+func SolveOrder(c *gin.Context) {
+	claims, _ := c.Get("claims")
+	claimsValueElem := reflect.ValueOf(claims).Elem()
+	userId := int(claimsValueElem.FieldByName("ID").Int())
+
+	id := c.Param("id")
+	idInt, err := strconv.Atoi(id)
+	if err != nil {
+		response.Failed(c, "参数错误")
+		return
+	}
+
+	order := model.GetOrderByID(idInt)
+	if order.UserID != userId && order.HisID != userId {
+		response.Failed(c, "无权限操作")
+		return
+	}
+
+	// 用redis判断是否双方都确认解决了
+
+	response.Success(c, "操作成功", nil)
 }

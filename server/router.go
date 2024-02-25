@@ -64,8 +64,17 @@ func Start() {
 		i.POST("order", service.AddOrder)
 		i.GET("order/:id", service.GetOrder)
 		i.DELETE("order/:id", service.CancelOrder)
+		i.GET("order/my", service.GetMyOrder)
+		i.PUT("order/receive/my/:id", service.IReceiveOrder)
+		i.PUT("order/return/my/:id", service.IReturnOrder)
+		i.PUT("order/solve/:id", service.SolveOrder)
+
+		i.GET("/alipay/:id", service.PayUrl)
 	}
 	e.GET("/category/:parentId", service.GetCategory)
+
+	e.GET("/callback", service.Callback)
+	e.POST("/notify", service.Notify)
 
 	err := e.Run(":8080")
 	if err != nil {
