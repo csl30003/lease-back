@@ -5,6 +5,7 @@ go 1.18
 require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/gin-gonic/gin v1.9.1
+	github.com/go-redis/redis v6.15.9+incompatible
 	github.com/smartwalle/alipay/v3 v3.2.20
 	github.com/w3liu/go-common v0.0.0-20210108072342-826b2f3582be
 	gopkg.in/ini.v1 v1.67.0

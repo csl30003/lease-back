@@ -2,6 +2,8 @@ package service
 
 import (
 	"github.com/gin-gonic/gin"
+	"lease/common"
+	"lease/database"
 	"lease/dto"
 	"lease/model"
 	"lease/response"
@@ -248,13 +250,213 @@ func SolveOrder(c *gin.Context) {
 		return
 	}
 
+	// flag表示自己的身份 1表示买家 2表示卖家
+	flag := "0"
 	order := model.GetOrderByID(idInt)
-	if order.UserID != userId && order.HisID != userId {
+	if order.UserID == userId {
+		flag = "1"
+	} else if order.HisID == userId {
+		flag = "2"
+	} else {
 		response.Failed(c, "无权限操作")
 		return
 	}
 
-	// 用redis判断是否双方都确认解决了
+	// 用redis判断是否双方都确认解决了 val=1表示买家确认解决 val=2表示卖家确认解决
+	val, _ := database.Cache.Get(common.RedisKeyOrderSolve + order.Identifier).Result()
+	if val == "1" && flag == "1" {
+		// 我之前确认解决过了，跳过
+		response.Success(c, "已确认解决", 1)
+		return
+
+	} else if val == "2" && flag == "2" {
+		// 对方之前确认解决过了，跳过
+		response.Success(c, "已确认解决", 1)
+		return
+
+	} else if (val == "1" && flag == "2") || (val == "2" && flag == "1") {
+		// 说明双方都确认解决了
+		database.Cache.Del(common.RedisKeyOrderSolve + order.Identifier)
+		model.UpdateOrderStatus(idInt, 8)
+		model.UpdateOrderAllSolveTimeAndCompleteTime(idInt)
+
+		response.Success(c, "操作成功", 2)
+		return
+
+	} else if val != "1" && val != "2" && flag != "0" {
+		// 说明双方都没有确认解决
+		err = database.Cache.Set(common.RedisKeyOrderSolve+order.Identifier, flag, 0).Err()
+		if err != nil {
+			response.Failed(c, "操作失败")
+			return
+		}
+
+		response.Success(c, "操作成功", 1)
+		return
+	}
+
+	response.Failed(c, "未知错误")
+}
+
+func GetHisOrder(c *gin.Context) {
+	claims, _ := c.Get("claims")
+	claimsValueElem := reflect.ValueOf(claims).Elem()
+	userId := int(claimsValueElem.FieldByName("ID").Int())
+
+	//从get方法获取数据
+	current := c.Query("current")
+	size := c.Query("size")
+	status := c.Query("status")
+
+	// 默认判断
+	if current == "" {
+		current = "1"
+	}
+	if size == "" {
+		size = "10"
+	}
+
+	// 将current和size转换成int类型
+	currentInt, err := strconv.Atoi(current)
+	if err != nil {
+		response.Failed(c, "参数错误")
+		return
+	}
+	sizeInt, err := strconv.Atoi(size)
+	if err != nil {
+		response.Failed(c, "参数错误")
+		return
+	}
+
+	var orderList []model.OrderDetail
+	var total int64
+	// 如果status在0到8之间，查询指定状态订单，否则查询全部订单
+	if status == "0" || status == "1" || status == "2" || status == "3" || status == "4" || status == "5" || status == "6" || status == "7" || status == "8" {
+		statusInt, err := strconv.Atoi(status)
+		if err != nil {
+			response.Failed(c, "参数错误")
+			return
+		}
+		// 查询指定状态订单
+		orderList = model.GetMyReleasePartialOrder(userId, currentInt, sizeInt, statusInt)
+		total = model.GetMyReleasePartialOrderTotal(userId, statusInt)
+	} else {
+		// 查询全部订单
+		orderList = model.GetMyReleaseAllOrder(userId, currentInt, sizeInt)
+		total = model.GetMyReleaseAllOrderTotal(userId)
+	}
+
+	var pages int64
+	if total%int64(sizeInt) == 0 {
+		pages = total / int64(sizeInt)
+	} else {
+		pages = total/int64(sizeInt) + 1
+	}
+
+	response.Success(c, "获取成功", gin.H{
+		"records": orderList,
+		"pages":   pages,
+	})
+}
+
+func HeDeliveryOrder(c *gin.Context) {
+	claims, _ := c.Get("claims")
+	claimsValueElem := reflect.ValueOf(claims).Elem()
+	userId := int(claimsValueElem.FieldByName("ID").Int())
+
+	id := c.Param("id")
+	idInt, err := strconv.Atoi(id)
+	if err != nil {
+		response.Failed(c, "参数错误")
+		return
+	}
+
+	order := model.GetOrderByID(idInt)
+	if order.HisID != userId {
+		response.Failed(c, "无权限操作")
+		return
+	}
+
+	model.UpdateOrderStatus(idInt, 3)
+
+	model.UpdateOrderHisDeliveryTime(idInt)
+
+	response.Success(c, "操作成功", nil)
+}
+
+func HeReceiveOrder(c *gin.Context) {
+	claims, _ := c.Get("claims")
+	claimsValueElem := reflect.ValueOf(claims).Elem()
+	userId := int(claimsValueElem.FieldByName("ID").Int())
+
+	id := c.Param("id")
+	idInt, err := strconv.Atoi(id)
+	if err != nil {
+		response.Failed(c, "参数错误")
+		return
+	}
+
+	order := model.GetOrderByID(idInt)
+	if order.HisID != userId {
+		response.Failed(c, "无权限操作")
+		return
+	}
+
+	model.UpdateOrderStatus(idInt, 6)
+
+	model.UpdateOrderHisReceiveTime(idInt)
+
+	response.Success(c, "操作成功", nil)
+}
+
+func HeInspectOrderHasProblem(c *gin.Context) {
+	claims, _ := c.Get("claims")
+	claimsValueElem := reflect.ValueOf(claims).Elem()
+	userId := int(claimsValueElem.FieldByName("ID").Int())
+
+	id := c.Param("id")
+	idInt, err := strconv.Atoi(id)
+	if err != nil {
+		response.Failed(c, "参数错误")
+		return
+	}
+
+	order := model.GetOrderByID(idInt)
+	if order.HisID != userId {
+		response.Failed(c, "无权限操作")
+		return
+	}
+
+	model.UpdateOrderStatus(idInt, 7)
+
+	model.UpdateOrderInspectCompleteTime(idInt)
+
+	response.Success(c, "操作成功", nil)
+}
+
+func HeInspectOrderWithoutProblem(c *gin.Context) {
+	claims, _ := c.Get("claims")
+	claimsValueElem := reflect.ValueOf(claims).Elem()
+	userId := int(claimsValueElem.FieldByName("ID").Int())
+
+	id := c.Param("id")
+	idInt, err := strconv.Atoi(id)
+	if err != nil {
+		response.Failed(c, "参数错误")
+		return
+	}
+
+	order := model.GetOrderByID(idInt)
+	if order.HisID != userId {
+		response.Failed(c, "无权限操作")
+		return
+	}
+
+	model.UpdateOrderStatus(idInt, 8)
+
+	model.UpdateOrderInspectCompleteTime(idInt)
+
+	model.UpdateOrderCompleteTime(idInt)
 
 	response.Success(c, "操作成功", nil)
 }

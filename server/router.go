@@ -67,6 +67,11 @@ func Start() {
 		i.GET("order/my", service.GetMyOrder)
 		i.PUT("order/receive/my/:id", service.IReceiveOrder)
 		i.PUT("order/return/my/:id", service.IReturnOrder)
+		i.GET("order/his", service.GetHisOrder)
+		i.PUT("order/delivery/his/:id", service.HeDeliveryOrder)
+		i.PUT("order/receive/his/:id", service.HeReceiveOrder)
+		i.PUT("order/inspect/problem/his/:id", service.HeInspectOrderHasProblem)
+		i.PUT("order/inspect/ok/his/:id", service.HeInspectOrderWithoutProblem)
 		i.PUT("order/solve/:id", service.SolveOrder)
 
 		i.GET("/alipay/:id", service.PayUrl)
