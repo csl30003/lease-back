@@ -193,3 +193,33 @@ func GetMyReleasePartialOrderTotal(userId, statusInt int) (total int64) {
 	database.DB.Model(&Order{}).Where("his_id = ? AND status = ?", userId, statusInt).Count(&total)
 	return
 }
+
+type MyOrderCount struct {
+	Status1 int `json:"status1"`
+	Status3 int `json:"status3"`
+	Status4 int `json:"status4"`
+	Status7 int `json:"status7"`
+}
+
+func GetMyOrderCount(userId int) (myOrderCount MyOrderCount) {
+	database.DB.Table("orders").
+		Select("SUM(CASE WHEN `status` = 1 THEN 1 ELSE 0 END) AS status1, SUM(CASE WHEN `status` = 3 THEN 1 ELSE 0 END) AS status3, SUM(CASE WHEN `status` = 4 THEN 1 ELSE 0 END) AS status4, SUM(CASE WHEN `status` = 7 THEN 1 ELSE 0 END) AS status7").
+		Where("user_id = ? AND deleted_at IS NULL", userId).
+		Scan(&myOrderCount)
+	return
+}
+
+type HisOrderCount struct {
+	Status2 int `json:"status2"`
+	Status5 int `json:"status5"`
+	Status6 int `json:"status6"`
+	Status7 int `json:"status7"`
+}
+
+func GetHisOrderCount(userId int) (myOrderCount HisOrderCount) {
+	database.DB.Table("orders").
+		Select("SUM(CASE WHEN `status` = 2 THEN 1 ELSE 0 END) AS status2, SUM(CASE WHEN `status` = 5 THEN 1 ELSE 0 END) AS status5, SUM(CASE WHEN `status` = 6 THEN 1 ELSE 0 END) AS status6, SUM(CASE WHEN `status` = 7 THEN 1 ELSE 0 END) AS status7").
+		Where("his_id = ? AND deleted_at IS NULL", userId).
+		Scan(&myOrderCount)
+	return
+}

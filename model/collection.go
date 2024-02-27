@@ -24,3 +24,21 @@ func DeleteCollection(collection Collection) {
 func AddCollection(collection Collection) {
 	database.DB.Create(&collection)
 }
+
+type CollectionDetail struct {
+	ID        int     `json:"id"`
+	Name      string  `json:"name"`
+	Price     float64 `json:"price"`
+	MainImage string  `json:"main_image"`
+	ProductID int     `json:"product_id"`
+	UserID    int     `json:"user_id"`
+}
+
+func GetCollection(userId int) (collectionList []CollectionDetail) {
+	database.DB.Table("collections").
+		Select("collections.id, products.name, products.price, products.main_image, products.id as product_id, collections.user_id").
+		Joins("left join products on collections.product_id = products.id AND products.deleted_at IS NULL").
+		Where("collections.user_id = ? AND collections.deleted_at IS NULL", userId).
+		Scan(&collectionList)
+	return
+}

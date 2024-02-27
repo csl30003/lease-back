@@ -2,27 +2,31 @@ package service
 
 import (
 	"github.com/gin-gonic/gin"
+	"lease/common"
 	"lease/config"
+	"lease/database"
+	"lease/dto"
 	"lease/model"
 	"lease/response"
 	"lease/util"
+	"reflect"
 	"strconv"
 )
 
 const (
 	kAppID               = "9021000134675991"
-	kServerDomain        = "http://e8967k.natappfree.cc"
 	AppPublicCertPath    = "config/dev/cert/appPublicCert.crt"    // app公钥证书路径
 	AliPayRootCertPath   = "config/dev/cert/alipayRootCert.crt"   // alipay根证书路径
 	AliPayPublicCertPath = "config/dev/cert/alipayPublicCert.crt" // alipay公钥证书路径
-	NotifyURL            = kServerDomain + "/notify"
-	ReturnURL            = kServerDomain + "/callback"
 	IsProduction         = false
 )
 
 var AliPayClient *util.AliPayClient
 
 func init() {
+	kServerDomain := config.Cfg.Section("AliPay").Key("k_server_domain").String()
+	notifyURL := kServerDomain + "/notify"
+	returnURL := kServerDomain + "/callback"
 	kPrivateKey := config.Cfg.Section("AliPay").Key("k_private_key").String()
 	AliPayClient = util.InitClient(util.Config{
 		KAppID:               kAppID,
@@ -31,8 +35,8 @@ func init() {
 		AppPublicCertPath:    AppPublicCertPath,
 		AliPayRootCertPath:   AliPayRootCertPath,
 		AliPayPublicCertPath: AliPayPublicCertPath,
-		NotifyURL:            NotifyURL,
-		ReturnURL:            ReturnURL,
+		NotifyURL:            notifyURL,
+		ReturnURL:            returnURL,
 	})
 }
 
@@ -93,10 +97,72 @@ func Notify(c *gin.Context) {
 	// 生成订单pay_time
 	model.UpdateOrderPayTime(orderIDInt)
 
-	// 商家钱包增加金额
+	// 在收支表中增加一条记录
 	order := model.GetOrderByID(orderIDInt)
-	user := model.GetUserByID(order.UserID)
+	model.AddPayment(model.Payment{
+		Type:    1,
+		Money:   order.ActualPayment,
+		UserID:  order.HisID,
+		OrderID: orderIDInt,
+	})
+
+	// 商家钱包增加金额
+	user := model.GetUserByID(order.HisID)
 	model.UpdateUserWallet(user.ID, user.Wallet+order.ActualPayment)
 
 	response.Success(c, "支付成功", nil)
+}
+
+func GetPayment(c *gin.Context) {
+	claims, _ := c.Get("claims")
+	claimsValueElem := reflect.ValueOf(claims).Elem()
+	userId := int(claimsValueElem.FieldByName("ID").Int())
+
+	paymentList := model.GetPaymentByUserID(userId)
+
+	getPaymentResp := make([]dto.Payment, 0)
+	for _, payment := range paymentList {
+		getPaymentResp = append(getPaymentResp, dto.Payment{
+			ID:              payment.ID,
+			CreatedAt:       payment.CreatedAt.Format("2006-01-02 15:04:05"),
+			Type:            payment.Type,
+			Money:           payment.Money,
+			UserID:          payment.UserID,
+			OrderID:         payment.OrderID,
+			OrderIdentifier: payment.OrderIdentifier,
+		})
+	}
+
+	response.Success(c, "获取成功", getPaymentResp)
+}
+
+func Withdraw(c *gin.Context) {
+	claims, _ := c.Get("claims")
+	claimsValueElem := reflect.ValueOf(claims).Elem()
+	userId := int(claimsValueElem.FieldByName("ID").Int())
+
+	// 判断是否有提现中的记录
+	val, _ := database.Cache.Get(common.RedisKeyWithdrawUserID + strconv.Itoa(userId)).Result()
+	if val == "" {
+		// 获取用户信息
+		user := model.GetUserByID(userId)
+		if user.Wallet == 0 {
+			response.Failed(c, "钱包为空")
+			return
+		}
+
+		// 提现
+		model.AddPayment(model.Payment{
+			Type:   3,
+			Money:  user.Wallet,
+			UserID: userId,
+		})
+
+		// 在redis中增加提现中的记录
+		database.Cache.Set(common.RedisKeyWithdrawUserID+strconv.Itoa(userId), 1, 0)
+
+		response.Success(c, "提现申请成功", nil)
+	} else {
+		response.Failed(c, "已申请提现，请勿重复提现")
+	}
 }

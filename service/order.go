@@ -460,3 +460,20 @@ func HeInspectOrderWithoutProblem(c *gin.Context) {
 
 	response.Success(c, "操作成功", nil)
 }
+
+func GetOrderCount(c *gin.Context) {
+	claims, _ := c.Get("claims")
+	claimsValueElem := reflect.ValueOf(claims).Elem()
+	userId := int(claimsValueElem.FieldByName("ID").Int())
+
+	// 获取我的订单数量
+	myOrderCount := model.GetMyOrderCount(userId)
+
+	// 获取他的订单数量
+	hisOrderCount := model.GetHisOrderCount(userId)
+
+	response.Success(c, "获取成功", gin.H{
+		"myOrderCount":  myOrderCount,
+		"hisOrderCount": hisOrderCount,
+	})
+}

@@ -1,5 +1,6 @@
 package common
 
 var (
-	RedisKeyOrderSolve = "lease:order:solve:"
+	RedisKeyOrderSolve     = "lease:order:solve:"
+	RedisKeyWithdrawUserID = "lease:withdraw:userId:"
 )

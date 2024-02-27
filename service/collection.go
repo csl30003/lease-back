@@ -53,3 +53,13 @@ func Collection(c *gin.Context) {
 	response.Success(c, "收藏成功", true)
 
 }
+
+func GetCollection(c *gin.Context) {
+	claims, _ := c.Get("claims")
+	claimsValueElem := reflect.ValueOf(claims).Elem()
+	userId := int(claimsValueElem.FieldByName("ID").Int())
+
+	collectionList := model.GetCollection(userId)
+
+	response.Success(c, "获取收藏成功", collectionList)
+}

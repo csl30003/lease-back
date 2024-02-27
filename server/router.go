@@ -51,6 +51,7 @@ func Start() {
 
 		i.GET("collection/isCollection/:product_id", service.IsCollection)
 		i.POST("collection/addOrCancel", service.Collection)
+		i.GET("collection", service.GetCollection)
 
 		i.POST("/message", service.SendMessage)
 		i.GET("/message/user", service.GetChatUser)
@@ -73,8 +74,11 @@ func Start() {
 		i.PUT("order/inspect/problem/his/:id", service.HeInspectOrderHasProblem)
 		i.PUT("order/inspect/ok/his/:id", service.HeInspectOrderWithoutProblem)
 		i.PUT("order/solve/:id", service.SolveOrder)
+		i.GET("order/count", service.GetOrderCount)
 
 		i.GET("/alipay/:id", service.PayUrl)
+		i.GET("payment", service.GetPayment)
+		i.POST("withdraw", service.Withdraw)
 	}
 	e.GET("/category/:parentId", service.GetCategory)
 
