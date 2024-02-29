@@ -42,10 +42,8 @@ func Start() {
 		i.DELETE("/address/:id", service.DeleteAddress)
 
 		i.POST("/product", service.AddProduct)
-		i.GET("/product/:id", service.GetProduct)
 		i.PUT("/product/status", service.UpdateProductStatus)
 		i.GET("/product/my/:status", service.GetMyProduct)
-		i.GET("/product/list", service.GetProductList)
 		i.POST("/product/mainImage/:id", service.UploadProductMainImage)
 		i.POST("/product/image/:id", service.UploadProductImage)
 
@@ -57,9 +55,6 @@ func Start() {
 		i.GET("/message/user", service.GetChatUser)
 		i.GET("/message/list/:toId", service.GetMessage)
 
-		i.GET("/comment/two/:productId", service.GetTwoComment)
-		i.GET("/comment/root/:productId", service.GetRootComment)
-		i.GET("/comment/list/:commentId", service.GetCommentList)
 		i.POST("/comment", service.AddComment)
 
 		i.POST("order", service.AddOrder)
@@ -81,6 +76,13 @@ func Start() {
 		i.POST("withdraw", service.Withdraw)
 	}
 	e.GET("/category/:parentId", service.GetCategory)
+
+	e.GET("/product/:id", service.GetProduct)
+	e.GET("/product/list", service.GetProductList)
+
+	e.GET("/comment/two/:productId", service.GetTwoComment)
+	e.GET("/comment/root/:productId", service.GetRootComment)
+	e.GET("/comment/list/:commentId", service.GetCommentList)
 
 	e.GET("/callback", service.Callback)
 	e.POST("/notify", service.Notify)

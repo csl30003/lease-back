@@ -67,7 +67,7 @@ func GetThreeToComment(rootCommentIDStr string) (threeToComment []ThreeToComment
 		"FROM comments c2 " +
 		"WHERE c2.root_comment_id = c1.root_comment_id AND c2.id <= c1.id AND c2.deleted_at IS NULL ) <= 3 " +
 		"ORDER BY c1.created_at ASC;"
-	database.DB.Debug().Raw(rawStr).Scan(&threeToComment)
+	database.DB.Raw(rawStr).Scan(&threeToComment)
 	return
 }
 
