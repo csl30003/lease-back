@@ -165,3 +165,8 @@ func GetProduct(c *gin.Context) {
 
 	response.Success(c, "获取成功", getProductResp)
 }
+
+func GetCarousel(c *gin.Context) {
+	carouselList := model.GetCarousel()
+	response.Success(c, "获取成功", carouselList)
+}

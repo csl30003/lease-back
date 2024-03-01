@@ -77,6 +77,7 @@ func Start() {
 	}
 	e.GET("/category/:parentId", service.GetCategory)
 
+	e.GET("product/carousel", service.GetCarousel)
 	e.GET("/product/:id", service.GetProduct)
 	e.GET("/product/list", service.GetProductList)
 
